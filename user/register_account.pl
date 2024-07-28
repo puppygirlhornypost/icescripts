@@ -10,8 +10,8 @@ use LWP::UserAgent();
 my $username = '';
 my $password = '';
 my $invite = '';
-
-my $instance = 'https://ice.puppygirl.sale';
+# Instance URL is just something like "https://ice.puppygirl.sale"
+my $instance = '';
 my $endpoint = '/api/iceshrimp/auth/register';
 
 # If you really want to remove the invite, you can hack this script together 
