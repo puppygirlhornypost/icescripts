@@ -33,7 +33,7 @@ my $data = {
 my $encoded_data = encode_json($data);
 
 # Create the request with appropriate headers
-my $req = HTTP::Request->new('POST', $instance.$endpoint);
+my $req = HTTP::Request->new('POST', $instance.$reg);
 $req->content($encoded_data);
 my $ua = LWP::UserAgent->new();
 $ua->default_header('Content-Type' => 'application/json');
@@ -45,7 +45,7 @@ my $res = $ua->request($req);
 
 if ($res->code != 200) {
   print("shit is fucked.\n");
-  die $authreq->as_string);
+  die $res->as_string;
 }
 
 my $token = decode_json($res->decoded_content)->{token};
