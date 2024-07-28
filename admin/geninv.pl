@@ -7,22 +7,43 @@ use HTTP::Request();
 use JSON::MaybeXS qw(encode_json decode_json);
 use LWP::UserAgent();
 
+# USER MODIFIABLE SETTINGS
 my $bearer = '';
 # Instance URL is just something like "https://ice.puppygirl.sale"
 my $instance = '';
-my $endpoint = '/api/iceshrimp/admin/invites/generate';
+# instance url without https:// (according to docs this is used for register
+# endpoint. "ice.puppygirl.sale"
+my $host = '';
+# END USER MODIFIABLE SETTINGS
 
-my $data = {};
-my $encoded_data = encode_json($data);
+my $gen = '/api/iceshrimp/admin/invites/generate';
+my $auth = '/api/iceshrimp/auth';
 
-# Create the request with appropriate headers
-my $req = HTTP::Request->new('POST', $instance.$endpoint);
-$req->content($encoded_data);
 my $ua = LWP::UserAgent->new();
-$ua->default_header('Content-Type' => 'application/json');
-$ua->default_header('Host' => 'ice.puppygirl.sale');
+$ua->default_header('Accept' => 'application/json');
+$ua->default_header('Host' => $host);
 $ua->default_header('Authorization' => "Bearer $bearer");
 $ua->agent('amber inv script');
+
+my $authreq = $ua->request(HTTP::Request->new('GET', $instance.$auth));
+
+# Guard statement for unexpected http code.
+if ($authreq->code != 200) {
+  print("shit is fucked.\n");
+  print($authreq->as_string);
+  exit 1;
+}
+
+# Guard for if they're not an admin.
+if (!decode_json($authreq->decoded_content)->{isAdmin}) {
+  print("This endpoint requires isadmin=true on your account.");
+  exit 1;
+}
+
+# Create the request with appropriate headers
+my $req = HTTP::Request->new('POST', $instance.$gen);
+$req->content(encode_json({}));
+$ua->default_headers->remove_header('Accept');
 
 # Send the request
 my $res = $ua->request($req);
@@ -35,4 +56,3 @@ if ($res->code == 200) {
   print("shit is fucked.\n");
   print($res->as_string);
 }
-
