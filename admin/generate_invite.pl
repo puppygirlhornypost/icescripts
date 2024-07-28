@@ -8,7 +8,8 @@ use JSON::MaybeXS qw(encode_json decode_json);
 use LWP::UserAgent();
 
 my $bearer = '';
-my $instance = 'https://ice.puppygirl.sale';
+# Instance URL is just something like "https://ice.puppygirl.sale"
+my $instance = '';
 my $endpoint = '/api/iceshrimp/admin/invites/generate';
 
 my $data = {};
