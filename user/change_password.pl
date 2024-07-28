@@ -10,7 +10,8 @@ use LWP::UserAgent();
 my $password = '';
 my $newpass = '';
 my $bearer = '';
-my $instance = 'https://ice.puppygirl.sale';
+# Instance URL is just something like "https://ice.puppygirl.sale"
+my $instance = '';
 my $endpoint = '/api/iceshrimp/auth/change-password';
 
 my $data = {
