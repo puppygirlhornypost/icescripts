@@ -30,14 +30,12 @@ my $authreq = $ua->request(HTTP::Request->new('GET', $instance.$auth));
 # Guard statement for unexpected http code.
 if ($authreq->code != 200) {
   print("shit is fucked.\n");
-  print($authreq->as_string);
-  exit 1;
+  die $authreq->as_string)
 }
 
 # Guard for if they're not an admin.
 if (!decode_json($authreq->decoded_content)->{isAdmin}) {
-  print("This endpoint requires isadmin=true on your account.");
-  exit 1;
+  die "This endpoint requires isadmin=true on your account.";
 }
 
 # Create the request with appropriate headers
@@ -49,10 +47,11 @@ $ua->default_headers->remove_header('Accept');
 my $res = $ua->request($req);
 
 # Handle the result
-if ($res->code == 200) {
-  my $code = decode_json($res->decoded_content)->{code};
-  print("Success! Code: `$code`\n");
-} else {
+if ($res->code != 200) {
   print("shit is fucked.\n");
-  print($res->as_string);
+  die ($res->as_string);
 }
+
+my $code = decode_json($res->decoded_content)->{code};
+print("Success! Code: `$code`\n");
+
