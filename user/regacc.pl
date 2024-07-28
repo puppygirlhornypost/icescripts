@@ -37,7 +37,7 @@ my $req = HTTP::Request->new('POST', $instance.$endpoint);
 $req->content($encoded_data);
 my $ua = LWP::UserAgent->new();
 $ua->default_header('Content-Type' => 'application/json');
-$ua->default_header('Host' => 'ice.puppygirl.sale');
+$ua->default_header('Host' => $host);
 $ua->agent('amber reg script');
 
 # Send the request
@@ -45,6 +45,7 @@ my $res = $ua->request($req);
 
 if ($res->code != 200) {
   print("shit is fucked.\n");
+  print($authreq->as_string);
   exit 1;
 }
 
