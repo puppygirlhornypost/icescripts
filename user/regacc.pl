@@ -45,8 +45,7 @@ my $res = $ua->request($req);
 
 if ($res->code != 200) {
   print("shit is fucked.\n");
-  print($authreq->as_string);
-  exit 1;
+  die $authreq->as_string);
 }
 
 my $token = decode_json($res->decoded_content)->{token};
@@ -59,8 +58,7 @@ my $authreq = $ua->request(HTTP::Request->new('GET', $instance.$auth));
 
 if ($authreq->code != 200) {
   print("shit is fucked.\n");
-  print($authreq->as_string);
-  exit 1;
+  die $authreq->as_string;
 }
 
 print("Success! Token: `$token`\n");
