@@ -30,7 +30,7 @@ my $authreq = $ua->request(HTTP::Request->new('GET', $instance.$auth));
 # Guard statement for unexpected http code.
 if ($authreq->code != 200) {
   print("shit is fucked.\n");
-  die $authreq->as_string)
+  die $authreq->as_string;
 }
 
 # Guard for if they're not an admin.
@@ -49,7 +49,7 @@ my $res = $ua->request($req);
 # Handle the result
 if ($res->code != 200) {
   print("shit is fucked.\n");
-  die ($res->as_string);
+  die $res->as_string;
 }
 
 my $code = decode_json($res->decoded_content)->{code};
