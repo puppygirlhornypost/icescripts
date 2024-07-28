@@ -16,3 +16,20 @@ the version of iceshrimp.NET running on https://ice.puppygirl.sale is 2024.1-bet
 # why perl
 someone said it was hideous that i was rawdogging curl for my instance, so i wrote these perl scripts to be more professional. :)
 
+# TODO
+
+## invocation
+* support arguments
+  * implement -i/--interactive to prompt for username, password, bearer, invite
+  * implement -b/--bearer for bearer token
+  * implement -u/--username for username
+  * implement -p/--password for password
+  * implement -n/--invite for iNvite
+  * implement -e/--env for loading custom .env files
+* support loading from .env, taking arguments as a priority over env. 
+## scripts
+* figure out if admin or moderator is required for {POST,DELETE} emoji/ endpoints
+* implement a script to modify emojis via PATCH.
+* implement a script to delete emojis via DELETE.
+* implement a script to create emojis via POST.
+* implement permission checking via auth endpoint.
