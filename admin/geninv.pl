@@ -6,26 +6,56 @@ use warnings;
 use HTTP::Request();
 use JSON::MaybeXS qw(encode_json decode_json);
 use LWP::UserAgent();
+use Getopt::Long;
 
-# USER MODIFIABLE SETTINGS
-my $bearer = '';
-# Instance URL is just something like "https://ice.puppygirl.sale"
-my $instance = '';
-# instance url without https:// (according to docs this is used for register
-# endpoint. "ice.puppygirl.sale"
-my $host = '';
+# If you want to hard code values instead of using cli, change undef to 'value'.
+# 
+# example:
+#   bearer => 'bearer'
+# 
+# Instance is the instance url, and host is the host url. 
+# 
+# example:
+#   instance => 'https://ice.puppygirl.sale/'
+#   host => 'ice.puppygirl.sale'
+#
+
+my %config = (
+  bearer => undef,
+  instance => undef,
+  host => undef
+);
+
 # END USER MODIFIABLE SETTINGS
+
+GetOptions(
+  'bearer=s' => \$config{bearer},
+  'instance=s' => \$config{instance},
+  'host=s' => \$config{host}
+);
+
+if (!$config{bearer}) {
+  die "bearer is undefined";
+}
+
+if (!$config{instance}) {
+  die "instance is undefined";
+}
+
+if (!$config{host}) {
+  die "host is undefined";
+}
 
 my $gen = '/api/iceshrimp/admin/invites/generate';
 my $auth = '/api/iceshrimp/auth';
 
 my $ua = LWP::UserAgent->new();
 $ua->default_header('Accept' => 'application/json');
-$ua->default_header('Host' => $host);
-$ua->default_header('Authorization' => "Bearer $bearer");
+$ua->default_header('Host' => $config{host});
+$ua->default_header('Authorization' => "Bearer $config{bearer}");
 $ua->agent('amber inv script');
 
-my $authreq = $ua->request(HTTP::Request->new('GET', $instance.$auth));
+my $authreq = $ua->request(HTTP::Request->new('GET', $config{instance}.$auth));
 
 # Guard statement for unexpected http code.
 if ($authreq->code != 200) {
@@ -39,7 +69,7 @@ if (!decode_json($authreq->decoded_content)->{isAdmin}) {
 }
 
 # Create the request with appropriate headers
-my $req = HTTP::Request->new('POST', $instance.$gen);
+my $req = HTTP::Request->new('POST', $config{instance}.$gen);
 $req->content(encode_json({}));
 $ua->default_headers->remove_header('Accept');
 
