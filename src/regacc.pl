@@ -21,7 +21,6 @@ use Getopt::Long;
 
 my %config = (
     instance => undef,
-    host => undef,
     username => undef,
     password => undef,
     invite => undef,
@@ -41,15 +40,13 @@ GetOptions(
 
 if (!$config{instance}) {
     die "instance is undefined";
-} elsif (!$config{host}) {
-    die "host is undefined";
 } elsif (!$config{username}) {
     die "username is undefined";
 } elsif (!$config{password}) {
     die "password is undefined";
 }
 
-my $client = IceClient->new($config{instance}, $config{host});
+my $client = IceClient->new($config{instance});
 $client->setUserAgent('amber regacc script');
 
 my $token = $client->registerAccount($username, $password, $invite);

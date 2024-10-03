@@ -21,7 +21,6 @@ use Getopt::Long;
 
 my %config = (
     instance => undef,
-    host => undef,
     username => undef,
     oldpass => undef,
     newpass => undef,
@@ -32,7 +31,6 @@ my %config = (
 
 GetOptions(
     'instance=s' => \$config{instance},
-    'host=s' => \$config{host},
     'username=s' => \$config{username},
     'oldpass=s' => \$config{oldpass},
     'newpass=s' => \$config{newpass},
@@ -41,15 +39,13 @@ GetOptions(
 
 if (!$config{instance}) {
     die "instance is undefined";
-} elsif (!$config{host}) {
-    die "host is undefined";
 } elsif (!$config{oldpass}) {
     die "oldpass is undefined";
 } elsif (!$config{newpass}) {
     die "newpass is undefined";
 }
 
-my $client = IceClient->new($config{instance}, $config{host});
+my $client = IceClient->new($config{instance});
 $client->setUserAgent('amber chpass script');
 
 if (!$config{bearer}) {

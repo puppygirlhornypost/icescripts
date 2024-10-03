@@ -21,7 +21,6 @@ use Getopt::Long;
 
 my %config = (
     instance => undef,
-    host => undef,
     username => undef,
     password => undef,
     skip_verify => ''
@@ -33,21 +32,18 @@ GetOptions(
     'username=s' => \$config{username},
     'password=s' => \$config{password},
     'instance=s' => \$config{instance},
-    'host=s' => \$config{host},
     'skip-verify' => \$config{skip_verify}
 );
 
 if (!$config{instance}) {
     die "instance is undefined";
-} elsif (!$config{host}) {
-    die "host is undefined";
 } elsif (!$config{username}) {
     die "username is undefined";
 } elsif (!$config{password}) {
     die "password is undefined";
 }
 
-my $client = IceClient->new($config{instance}, $config{host});
+my $client = IceClient->new($config{instance});
 $client->setUserAgent('amber gentoken script');
 my $token = $client->generateToken($config{username}, $config{password});
 

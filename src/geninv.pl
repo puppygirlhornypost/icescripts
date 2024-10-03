@@ -21,7 +21,6 @@ use Getopt::Long;
 
 my %config = (
     instance => undef,
-    host => undef,
     username => undef,
     password => undef,
     bearer => undef
@@ -31,7 +30,6 @@ my %config = (
 
 GetOptions(
     'instance=s' => \$config{instance},
-    'host=s' => \$config{host},
     'username=s' => \$config{username},
     'password=s' => \$config{password},
     'bearer=s' => \$config{bearer}
@@ -39,11 +37,9 @@ GetOptions(
 
 if (!$config{instance}) {
     die "instance is undefined";
-} elsif (!$config{host}) {
-    die "host is undefined";
 }
 
-my $client = IceClient->new($config{instance}, $config{host});
+my $client = IceClient->new($config{instance});
 $client->setUserAgent('amber geninvite script');
 
 if (!$config{bearer}) {

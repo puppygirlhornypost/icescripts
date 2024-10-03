@@ -13,12 +13,18 @@ use JSON::MaybeXS qw(encode_json decode_json);
 sub new {
     my $class = shift;
     my $self = {
-        _instance => shift,
-        _host => shift
+        _instance => shift
     };
 
     $self->{_userAgent} = LWP::UserAgent->new();
     $self->{_userAgent}->default_header('Host' => $self->{_host});
+
+    if ('/' eq substr($self->{_instance}, -1)) {
+        chop $self->{_instance};
+    }
+
+    $self->{_instance} =~ /http[s]?:\/\/(.+)/;
+    $self->{_host} = $1;
 
     bless $self, $class;
     return $self;
@@ -31,43 +37,49 @@ sub setUserAgent {
 }
 
 sub postRequest {
-    my ( $self, $endpoint, $content) = @_;
+    my ( $self, $endpoint, $content, $token) = @_;
 
     my $req = HTTP::Request->new('POST', $self->{_instance}.$endpoint);
     $req->content($content);
 
-    $self->{_userAgent}->default_header('Content-Type' => 'application/json');
+    $req->header('Content-Type' => 'application/json');
+
+    if (defined $token) {
+        $req->header('Authorization' => 'Bearer '.$token);
+    }
 
     my $res = $self->{_userAgent}->request($req);
-
-    $self->{_userAgent}->default_headers->remove_header('Content-Type');
 
     return $res;
 }
 
 sub getRequest {
-    my ( $self, $endpoint) = @_;
+    my ( $self, $endpoint, $token) = @_;
 
-    $self->{_userAgent}->default_header('Accept' => 'application/json');
+    my $req = HTTP::Request->new('GET', $self->{_instance}.$endpoint);
 
-    my $req = $self->{_userAgent}->request(HTTP::Request->new('GET', $self->{_instance}.$endpoint));
+    $req->header('Accept' => 'application/json');
 
-    $self->{_userAgent}->default_headers->remove_header('Accept');
+    if (defined $token) {
+        $req->header('Authorization' => 'Bearer '.$token);
+    }
 
-    return $req;
+    my $res = $self->{_userAgent}->request($req);
+
+    return $res;
 }
 
 sub registerAccount {
     my ( $self, $username, $password, $invite ) = @_;
 
-    my %payload = {
+    my %payload = (
         username => $username,
         password => $password
-    }
+    );
 
-    $payload->{invite} = $invite if defined($invite);
+    $payload{invite} = $invite if defined($invite);
 
-    my $req = $self->getRequest('/api/iceshrimp/auth/register', encode_json($payload));
+    my $req = $self->getRequest('/api/iceshrimp/auth/register', encode_json(%payload), undef);
 
     if ($req->code != 200) {
         die $req->as_string;
@@ -92,7 +104,7 @@ sub generateToken {
     my $req = $self->postRequest('/api/iceshrimp/auth/login', encode_json({
         username => $username,
         password => $password
-    }));
+    }), undef);
 
     # Handle the result
     if ($req->code != 200) {
@@ -105,9 +117,7 @@ sub generateToken {
 sub verifyToken {
     my ( $self, $token ) = @_;
     
-    $self->{_userAgent}->default_header('Authorization' => 'Bearer '.$token);
-    my $req = $self->getRequest('/api/iceshrimp/auth');
-    $self->{_userAgent}->default_headers->remove_header('Authorization');
+    my $req = $self->getRequest('/api/iceshrimp/auth', $token);
 
     if ($req->code == 200) {
         return 1;
@@ -119,44 +129,13 @@ sub verifyToken {
 sub verifyAdmin {
     my ( $self ) = @_;
 
-    my $req = $self->getRequestAuth('/api/iceshrimp/auth');
+    my $req = $self->getRequest('/api/iceshrimp/auth', $self->{_token});
 
     if ($req->code == 200) {
         return decode_json($req->decoded_content)->{isAdmin};
     } else {
         return 0;
     }
-}
-
-sub postRequestAuth {
-    my ( $self, $endpoint, $content) = @_;
-
-    my $req = HTTP::Request->new('POST', $self->{_instance}.$endpoint);
-    $req->content($content);
-
-    $self->{_userAgent}->default_header('Content-Type' => 'application/json');
-    $self->{_userAgent}->default_header('Authorization' => 'Bearer '.$self->{_token});
-
-    my $res = $self->{_userAgent}->request($req);
-
-    $self->{_userAgent}->default_headers->remove_header('Content-Type');
-    $self->{_userAgent}->default_headers->remove_header('Authorization');
-
-    return $res;
-}
-
-sub getRequestAuth {
-    my ( $self, $endpoint) = @_;
-
-    $self->{_userAgent}->default_header('Accept' => 'application/json');
-    $self->{_userAgent}->default_header('Authorization' => 'Bearer '.$self->{_token});
-
-    my $req = $self->{_userAgent}->request(HTTP::Request->new('GET', $self->{_instance}.$endpoint));
-
-    $self->{_userAgent}->default_headers->remove_header('Accept');
-    $self->{_userAgent}->default_headers->remove_header('Authorization');
-
-    return $req;
 }
 
 sub generateInvite {
@@ -166,7 +145,7 @@ sub generateInvite {
         die "You must be admin to generate an invite code!";
     }
 
-    my $req = $self->postRequestAuth('/api/iceshrimp/admin/invites/generate', '{}');
+    my $req = $self->postRequest('/api/iceshrimp/admin/invites/generate', '{}', $self->{_token});
 
     if ($req->code != 200) {
         die $req->as_string;
@@ -181,7 +160,7 @@ sub changePassword {
     my $req = $self->postRequest('/api/iceshrimp/auth/change-password', encode_json({
         oldPassword => $oldpass,
         newPassword => $newpass
-    }));
+    }), $self->{_token});
 
     if ($req->code != 200) {
         die $req->as_string;
