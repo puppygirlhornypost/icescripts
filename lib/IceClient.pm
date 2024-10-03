@@ -17,14 +17,10 @@ sub new {
     };
 
     $self->{_userAgent} = LWP::UserAgent->new();
-    $self->{_userAgent}->default_header('Host' => $self->{_host});
 
     if ('/' eq substr($self->{_instance}, -1)) {
         chop $self->{_instance};
     }
-
-    $self->{_instance} =~ /http[s]?:\/\/(.+)/;
-    $self->{_host} = $1;
 
     bless $self, $class;
     return $self;
@@ -106,7 +102,6 @@ sub generateToken {
         password => $password
     }), undef);
 
-    # Handle the result
     if ($req->code != 200) {
         die "invalid username and password! raw http response:\n".$req->as_string;
     }
@@ -119,11 +114,11 @@ sub verifyToken {
     
     my $req = $self->getRequest('/api/iceshrimp/auth', $token);
 
-    if ($req->code == 200) {
-        return 1;
-    } else {
+    if ($req->code != 200) {
         return 0;
     }
+
+    return 1;
 }
 
 sub verifyAdmin {
@@ -131,11 +126,11 @@ sub verifyAdmin {
 
     my $req = $self->getRequest('/api/iceshrimp/auth', $self->{_token});
 
-    if ($req->code == 200) {
-        return decode_json($req->decoded_content)->{isAdmin};
-    } else {
+    if ($req->code != 200) {
         return 0;
-    }
+    } 
+
+    return decode_json($req->decoded_content)->{isAdmin};
 }
 
 sub generateInvite {
